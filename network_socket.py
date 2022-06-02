@@ -8,7 +8,7 @@ class NetworkSocket():
         self.connected = False
 
     def connect_socket(self, ip, port, password):
-        print("connecting...")
+        # print("connecting...")
         # Try to connect
         self.connected = 0
         try:
@@ -33,12 +33,12 @@ class NetworkSocket():
         d = []
         d = self.read(1)
         if d[0] == 0:
-            print("p")                     # Password is enabled
+            # print("p")                     # Password is enabled
             passwordString = '\x79' + password      # Put together password command and send it
             self.write(passwordString)
             d = self.read(1)
             if d[0] != 1:                      # The password was wrong
-                print("Wrong password")
+                # print("Wrong password")
                 self.sock.close()
                 return 0
         return 1
@@ -68,4 +68,4 @@ class NetworkSocket():
             self.connected = False
         except Exception as e:
             print(e)
-        print("Disconnected")
+        # print("Disconnected")

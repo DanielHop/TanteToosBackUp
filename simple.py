@@ -2,11 +2,13 @@ from network_socket import NetworkSocket
 import time
 import pyodbc
 from datetime import datetime, timedelta
+import gc
+import os
 
 DEVELOPER = False
 DEF_PORT = 17494
 PASSWORD_TIME = 300
-
+ABSOLUTE_PATH = "C:\\Users\\Tante Toos\\Documents\\Backup systeem\\Main\\Log\\"
 
 class Controller():
     def __init__(self, name, ip, port=DEF_PORT):
@@ -21,11 +23,11 @@ class Controller():
 
     def connect(self):
         self.ns = NetworkSocket()
-        self.connected = self.ns.connect_socket(self.ip, self.port, "")
+        self.connected = self.ns.connect_socket(self.ip, self.port, "password")
 
     def relay_on(self, relay):
         if self.connected == 0:
-            print("Not connected")
+            # print("Not connected")
             return -1
 
         command = "\x20"
@@ -37,7 +39,7 @@ class Controller():
 
     def relay_off(self, relay):
         if self.connected == 0:
-            print("Not connected")
+            # print("Not connected")
             return -1
 
         command = "\x21"
@@ -49,6 +51,11 @@ class Controller():
 
     def open(self, relay):
         self.connect()
+
+        if self.connected == 0:
+            print("Kan dit kluisje niet openen")
+            return 0
+
         self.relay_on(relay)
         time.sleep(0.5)
         i = self.relay_off(relay)
@@ -64,14 +71,17 @@ class Log():
     def __init__(self):
         date = datetime.now() - timedelta(hours=12)
         date = date.strftime("%Y-%m-%d")
-        self.f = open(".\\Log\\log" + date + ".txt", "a+")
+        self.f = open(ABSOLUTE_PATH + date + ".txt", "a+")
         line = "Log boek geopend op tijd "
-        line += datetime.now().strftime("%H:%M:%S:")
+        line += datetime.now().strftime("%H:%M:%S")
         self.f.write(line + "\n")
 
     def __del__(self):
+        self.close()
+
+    def close(self):
         line = "Log boek gesloten op tijd "
-        line += datetime.now().strftime("%H:%M:%S:")
+        line += datetime.now().strftime("%H:%M:%S")
         self.f.write(line + "\n")
         self.f.close()
 
@@ -85,6 +95,9 @@ class Log():
         line += str(locker) + " niet gevonden"
         self.f.write(line + "\n")
 
+
+def clear_console():
+    os.system('cls')
 
 def find_controller(name, c_lockers, c_ports):
     for i in range(0, len(c_lockers)):
@@ -120,6 +133,7 @@ def enter_password():
     while password != "1234":
         print("Incorrect wachtwoord")
         password = input("Voer wachtwoord in: ")
+    clear_console()
     print("Wachtwoord klopt!")
 
 
@@ -174,11 +188,14 @@ while lock != "exit":
     if(c_index != -1):
         success = open_controller(c_index, lock, controllers)
         logger.log_locker(lock, success)
-    else:
+    elif lock != "exit":
         print("Kluisje niet gevonden")
         logger.log_not_found(lock)
 
     last_time = datetime.now()
+
+del logger
+gc.collect()
 
 # Timestamps
 # Logboeks
